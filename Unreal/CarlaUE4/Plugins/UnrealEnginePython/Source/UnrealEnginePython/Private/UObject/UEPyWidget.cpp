@@ -4,8 +4,7 @@
 #include "Runtime/UMG/Public/Components/Widget.h"
 
 
-PyObject *py_ue_take_widget(ue_PyUObject * self, PyObject * args)
-{
+PyObject *py_ue_take_widget(ue_PyUObject * self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -18,8 +17,7 @@ PyObject *py_ue_take_widget(ue_PyUObject * self, PyObject * args)
 	return (PyObject *)s_widget;
 }
 
-PyObject *py_ue_create_widget(ue_PyUObject * self, PyObject * args)
-{
+PyObject *py_ue_create_widget(ue_PyUObject * self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -42,5 +40,9 @@ PyObject *py_ue_create_widget(ue_PyUObject * self, PyObject * args)
 	if (!widget)
 		return PyErr_Format(PyExc_Exception, "unable to create new widget");
 
-	Py_RETURN_UOBJECT(widget);
+	ue_PyUObject *ret = ue_get_python_wrapper(widget);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }

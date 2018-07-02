@@ -8,7 +8,7 @@
 
 
 UCLASS(BlueprintType, Blueprintable)
-class UNREALENGINEPYTHON_API APyActor : public AActor
+class APyActor : public AActor
 {
 	GENERATED_BODY()
 

@@ -46,8 +46,7 @@ PyTypeObject ue_PySPythonShelfType = {
 	ue_PySPythonShelf_methods,             /* tp_methods */
 };
 
-static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyObject *kwargs)
-{
+static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyObject *kwargs) {
 	PyObject *py_classes_iterable = nullptr;
 	PyObject *py_collections_iterable = nullptr;
 
@@ -66,45 +65,37 @@ static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyO
 		&py_collections_iterable,
 		&py_callable_double_clicked,
 		&py_callable_get_context_menu,
-		&py_callable_asset_selected))
-	{
+		&py_callable_asset_selected)) {
 		return -1;
 	}
 
-	if (py_classes_iterable)
-	{
+	if (py_classes_iterable) {
 		py_classes_iterable = PyObject_GetIter(py_classes_iterable);
-		if (!py_classes_iterable)
-		{
+		if (!py_classes_iterable) {
 			PyErr_SetString(PyExc_Exception, "argument is not an iterable");
 			return -1;
 		}
 	}
 
-	if (py_collections_iterable)
-	{
+	if (py_collections_iterable) {
 		py_collections_iterable = PyObject_GetIter(py_collections_iterable);
-		if (!py_collections_iterable)
-		{
+		if (!py_collections_iterable) {
 			PyErr_SetString(PyExc_Exception, "argument is not an iterable");
 			return -1;
 		}
 	}
 
-	if (py_callable_double_clicked && !PyCalllable_Check_Extended(py_callable_double_clicked))
-	{
+	if (py_callable_double_clicked && !PyCallable_Check(py_callable_double_clicked)) {
 		PyErr_SetString(PyExc_Exception, "argument is not callable");
 		return -1;
 	}
 
-	if (py_callable_get_context_menu && !PyCalllable_Check_Extended(py_callable_get_context_menu))
-	{
+	if (py_callable_get_context_menu && !PyCallable_Check(py_callable_get_context_menu)) {
 		PyErr_SetString(PyExc_Exception, "argument is not callable");
 		return -1;
 	}
 
-	if (py_callable_asset_selected && !PyCalllable_Check_Extended(py_callable_asset_selected))
-	{
+	if (py_callable_asset_selected && !PyCallable_Check(py_callable_asset_selected)) {
 		PyErr_SetString(PyExc_Exception, "argument is not callable");
 		return -1;
 	}
@@ -117,12 +108,9 @@ static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyO
 	asset_picker_config.bShowBottomToolbar = false;
 	asset_picker_config.bAutohideSearchBar = false;
 
-	if (py_classes_iterable)
-	{
-		while (PyObject *item = PyIter_Next(py_classes_iterable))
-		{
-			if (PyUnicode_Check(item))
-			{
+	if (py_classes_iterable) {
+		while (PyObject *item = PyIter_Next(py_classes_iterable)) {
+			if (PyUnicode_Check(item)) {
 				FName class_name = FName(UTF8_TO_TCHAR(PyUnicode_AsUTF8(item)));
 				asset_picker_config.Filter.ClassNames.Add(class_name);
 			}
@@ -130,12 +118,9 @@ static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyO
 		Py_DECREF(py_classes_iterable);
 	}
 
-	if (py_collections_iterable)
-	{
-		while (PyObject *item = PyIter_Next(py_collections_iterable))
-		{
-			if (PyUnicode_Check(item))
-			{
+	if (py_collections_iterable) {
+		while (PyObject *item = PyIter_Next(py_collections_iterable)) {
+			if (PyUnicode_Check(item)) {
 				FName collection_name = FName(UTF8_TO_TCHAR(PyUnicode_AsUTF8(item)));
 				asset_picker_config.Collections.Add(FCollectionNameType(collection_name, ECollectionShareType::CST_Local));
 			}
@@ -143,32 +128,36 @@ static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyO
 		Py_DECREF(py_collections_iterable);
 	}
 
-	if (py_callable_double_clicked)
-	{
+	if (py_callable_double_clicked) {
 		FOnAssetDoubleClicked handler;
-		TSharedRef<FPythonSlateDelegate> py_delegate = FUnrealEnginePythonHouseKeeper::Get()->NewStaticSlateDelegate(py_callable_double_clicked);
-		handler.BindSP(py_delegate, &FPythonSlateDelegate::OnAssetDoubleClicked);
+		UPythonSlateDelegate *py_delegate = NewObject<UPythonSlateDelegate>();
+		py_delegate->SetPyCallable(py_callable_double_clicked);
+		py_delegate->AddToRoot();
+		handler.BindUObject(py_delegate, &UPythonSlateDelegate::OnAssetDoubleClicked);
+		self->s_compound_widget.s_widget.delegates.Add(py_delegate);
 
 
 		asset_picker_config.OnAssetDoubleClicked = handler;
 	}
 
-	if (py_callable_get_context_menu)
-	{
+	if (py_callable_get_context_menu) {
 		FOnGetAssetContextMenu handler;
-		TSharedRef<FPythonSlateDelegate> py_delegate = FUnrealEnginePythonHouseKeeper::Get()->NewStaticSlateDelegate(py_callable_get_context_menu);
-
-		handler.BindSP(py_delegate, &FPythonSlateDelegate::OnGetAssetContextMenu);
+		UPythonSlateDelegate *py_delegate = NewObject<UPythonSlateDelegate>();
+		py_delegate->SetPyCallable(py_callable_get_context_menu);
+		py_delegate->AddToRoot();
+		handler.BindUObject(py_delegate, &UPythonSlateDelegate::OnGetAssetContextMenu);
+		self->s_compound_widget.s_widget.delegates.Add(py_delegate);
 
 		asset_picker_config.OnGetAssetContextMenu = handler;
 	}
 
-	if (py_callable_asset_selected)
-	{
+	if (py_callable_asset_selected) {
 		FOnAssetSelected handler;
-		TSharedRef<FPythonSlateDelegate> py_delegate = FUnrealEnginePythonHouseKeeper::Get()->NewStaticSlateDelegate(py_callable_asset_selected);
-
-		handler.BindSP(py_delegate, &FPythonSlateDelegate::OnAssetSelected);
+		UPythonSlateDelegate *py_delegate = NewObject<UPythonSlateDelegate>();
+		py_delegate->SetPyCallable(py_callable_asset_selected);
+		py_delegate->AddToRoot();
+		handler.BindUObject(py_delegate, &UPythonSlateDelegate::OnAssetSelected);
+		self->s_compound_widget.s_widget.delegates.Add(py_delegate);
 
 		asset_picker_config.OnAssetSelected = handler;
 	}
@@ -178,8 +167,7 @@ static int ue_py_spython_shelf_init(ue_PySPythonShelf *self, PyObject *args, PyO
 	return 0;
 }
 
-void ue_python_init_spython_shelf(PyObject *ue_module)
-{
+void ue_python_init_spython_shelf(PyObject *ue_module) {
 
 	ue_PySPythonShelfType.tp_init = (initproc)ue_py_spython_shelf_init;
 

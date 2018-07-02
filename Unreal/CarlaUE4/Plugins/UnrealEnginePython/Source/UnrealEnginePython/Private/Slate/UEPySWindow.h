@@ -14,5 +14,3 @@ typedef struct {
 } ue_PySWindow;
 
 void ue_python_init_swindow(PyObject *);
-
-ue_PySWindow *py_ue_is_swindow(PyObject *obj);

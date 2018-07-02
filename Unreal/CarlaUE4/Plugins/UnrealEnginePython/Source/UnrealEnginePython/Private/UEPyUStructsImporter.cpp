@@ -1,8 +1,8 @@
 #include "UnrealEnginePythonPrivatePCH.h"
 
 static PyObject *ue_PyUStructsImporter_getattro(ue_PyUStructsImporter *self, PyObject *attr_name) {
-	PyObject *py_attr = PyObject_GenericGetAttr((PyObject *)self, attr_name);
-	if (!py_attr) {
+	PyObject *ret = PyObject_GenericGetAttr((PyObject *)self, attr_name);
+	if (!ret) {
 		if (PyUnicodeOrString_Check(attr_name)) {
 			char *attr = PyUnicode_AsUTF8(attr_name);
 			if (attr[0] != '_') {
@@ -10,12 +10,16 @@ static PyObject *ue_PyUStructsImporter_getattro(ue_PyUStructsImporter *self, PyO
 				if (u_struct) {
 					// swallow old exception
 					PyErr_Clear();
-					Py_RETURN_UOBJECT(u_struct);
+					ue_PyUObject *u_ret = ue_get_python_wrapper(u_struct);
+					if (!u_ret)
+						return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+					Py_INCREF(u_ret);
+					return (PyObject *)u_ret;
 				}
 			}
 		}
 	}
-	return py_attr;
+	return ret;
 }
 
 static PyTypeObject ue_PyUStructsImporterType = {

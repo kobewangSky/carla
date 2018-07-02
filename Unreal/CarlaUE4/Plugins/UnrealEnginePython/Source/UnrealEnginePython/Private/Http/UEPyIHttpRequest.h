@@ -5,6 +5,8 @@
 #include "Runtime/Online/HTTP/Public/Interfaces/IHttpRequest.h"
 #include "Runtime/Online/HTTP/Public/HttpModule.h"
 
+#include "UEPyIHttpRequest.generated.h"
+
 
 extern PyTypeObject ue_PyIHttpBaseType;
 
@@ -18,8 +20,10 @@ typedef struct {
 
 void ue_python_init_ihttp_request(PyObject *);
 
-class FPythonSmartHttpDelegate : public FPythonSmartDelegate
+UCLASS()
+class UPythonHttpDelegate : public UPythonDelegate
 {
+	GENERATED_BODY()
 
 public:
 	void OnRequestComplete(FHttpRequestPtr request, FHttpResponsePtr response, bool successful);
@@ -30,7 +34,7 @@ public:
 		Py_INCREF(py_http_request);
 	}
 
-	~FPythonSmartHttpDelegate() {
+	~UPythonHttpDelegate() {
 		Py_XDECREF(py_http_request);
 	}
 protected:

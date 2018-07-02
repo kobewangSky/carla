@@ -4,9 +4,7 @@
 
 #include "UnrealEnginePython.h"
 
-#if ENGINE_MINOR_VERSION < 18
 #include "Runtime/CoreUObject/Public/Misc/StringAssetReference.h"
-#endif
 
 typedef struct {
 	PyObject_HEAD

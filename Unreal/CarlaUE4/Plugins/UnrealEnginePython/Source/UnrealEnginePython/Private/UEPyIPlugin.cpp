@@ -245,10 +245,12 @@ static PyObject *py_ue_iplugin_get_requires_build_platform(ue_PyIPlugin *self, v
 {
 	if (self->plugin->GetDescriptor().bRequiresBuildPlatform)
 	{
-		Py_RETURN_TRUE;
+		Py_INCREF(Py_True);
+		return Py_True;
 	}
 
-	Py_RETURN_FALSE;
+	Py_INCREF(Py_False);
+	return Py_False;
 }
 
 static PyGetSetDef ue_PyIPlugin_getseters[] = {

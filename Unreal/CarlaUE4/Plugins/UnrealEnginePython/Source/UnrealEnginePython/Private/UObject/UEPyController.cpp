@@ -35,7 +35,11 @@ PyObject *py_ue_controller_get_hud(ue_PyUObject * self, PyObject * args)
 	if (!controller)
 		return PyErr_Format(PyExc_Exception, "uobject is not an AController");
 
-	Py_RETURN_UOBJECT((UObject *)controller->GetHUD());
+	ue_PyUObject *ret = ue_get_python_wrapper((UObject *)controller->GetHUD());
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "uobject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_controller_unposses(ue_PyUObject * self, PyObject * args)
@@ -71,7 +75,11 @@ PyObject *py_ue_get_controlled_pawn(ue_PyUObject * self, PyObject * args)
 		Py_RETURN_NONE;
 	}
 
-	Py_RETURN_UOBJECT(pawn);
+	ue_PyUObject *ret = ue_get_python_wrapper(pawn);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "uobject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_controller_project_world_location_to_screen(ue_PyUObject * self, PyObject * args)

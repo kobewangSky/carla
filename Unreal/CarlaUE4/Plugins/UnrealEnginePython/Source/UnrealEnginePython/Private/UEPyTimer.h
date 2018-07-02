@@ -8,8 +8,8 @@ typedef struct {
 	PyObject_HEAD
 	/* Type-specific fields go here. */
 	FTimerHandle thandle;
-	TWeakObjectPtr<UWorld> world;
-	TSharedPtr<FPythonSmartDelegate> delegate_ptr;
+	PyObject *py_callable;
+	UWorld *world;
 } ue_PyFTimerHandle;
 
 PyObject *py_ue_set_timer(ue_PyUObject *, PyObject *);

@@ -2,8 +2,8 @@
 
 static PyObject *ue_PyUClassesImporter_getattro(ue_PyUClassesImporter *self, PyObject *attr_name)
 {
-	PyObject *py_attr = PyObject_GenericGetAttr((PyObject *)self, attr_name);
-	if (!py_attr)
+	PyObject *ret = PyObject_GenericGetAttr((PyObject *)self, attr_name);
+	if (!ret)
 	{
 		if (PyUnicodeOrString_Check(attr_name))
 		{
@@ -15,12 +15,16 @@ static PyObject *ue_PyUClassesImporter_getattro(ue_PyUClassesImporter *self, PyO
 				{
 					// swallow old exception
 					PyErr_Clear();
-					Py_RETURN_UOBJECT(u_class);
+					ue_PyUObject *u_ret = ue_get_python_wrapper(u_class);
+					if (!u_ret)
+						return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+					Py_INCREF(u_ret);
+					return (PyObject *)u_ret;
 				}
 			}
 		}
 	}
-	return py_attr;
+	return ret;
 }
 
 static PyTypeObject ue_PyUClassesImporterType = {

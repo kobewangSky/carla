@@ -13,17 +13,12 @@ PyObject *py_unreal_engine_get_forward_vector(PyObject *, PyObject *);
 PyObject *py_unreal_engine_get_right_vector(PyObject *, PyObject *);
 PyObject *py_unreal_engine_get_up_vector(PyObject *, PyObject *);
 
-PyObject *py_unreal_engine_clipboard_copy(PyObject *, PyObject *);
-PyObject *py_unreal_engine_clipboard_paste(PyObject *, PyObject *);
-
 PyObject *py_unreal_engine_set_random_seed(PyObject *, PyObject *);
 
 PyObject *py_unreal_engine_get_game_viewport_size(PyObject *, PyObject *);
 PyObject *py_unreal_engine_get_resolution(PyObject *, PyObject *);
 
 PyObject *py_unreal_engine_get_content_dir(PyObject *, PyObject *);
-PyObject *py_unreal_engine_get_game_saved_dir(PyObject *, PyObject *);
-PyObject *py_unreal_engine_get_game_user_developer_dir(PyObject *, PyObject *);
 
 PyObject *py_unreal_engine_find_object(PyObject *, PyObject *);
 PyObject *py_unreal_engine_find_class(PyObject *, PyObject *);
@@ -35,9 +30,6 @@ PyObject *py_unreal_engine_load_class(PyObject *, PyObject *);
 PyObject *py_unreal_engine_load_struct(PyObject *, PyObject *);
 PyObject *py_unreal_engine_load_enum(PyObject *, PyObject *);
 PyObject *py_unreal_engine_load_package(PyObject *, PyObject *);
-#if WITH_EDITOR
-PyObject *py_unreal_engine_unload_package(PyObject *, PyObject *);
-#endif
 
 PyObject *py_unreal_engine_string_to_guid(PyObject *, PyObject *);
 PyObject *py_unreal_engine_new_guid(PyObject *, PyObject *);
@@ -48,8 +40,6 @@ PyObject *py_unreal_engine_slate_tick(PyObject *, PyObject *);
 PyObject *py_unreal_engine_get_delta_time(PyObject *, PyObject *);
 
 PyObject *py_unreal_engine_all_classes(PyObject *, PyObject *);
-PyObject *py_unreal_engine_all_worlds(PyObject *, PyObject *);
-PyObject *py_unreal_engine_tobject_iterator(PyObject *, PyObject *);
 
 PyObject *py_unreal_engine_all_worlds(PyObject *, PyObject *);
 PyObject *py_unreal_engine_tobject_iterator(PyObject *, PyObject *);

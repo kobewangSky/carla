@@ -10,11 +10,7 @@ void UPythonFunction::SetPyCallable(PyObject *callable)
 }
 
 
-#if ENGINE_MINOR_VERSION > 18
-void UPythonFunction::CallPythonCallable(UObject *Context, FFrame& Stack, RESULT_DECL)
-#else
 void UPythonFunction::CallPythonCallable(FFrame& Stack, RESULT_DECL)
-#endif
 {
 
 	FScopePythonGIL gil;
@@ -36,7 +32,7 @@ void UPythonFunction::CallPythonCallable(FFrame& Stack, RESULT_DECL)
 	PyObject *py_args = PyTuple_New(argn);
 
 	if (Stack.Object && !is_static) {
-		PyObject *py_obj = (PyObject *)ue_get_python_uobject(Stack.Object);
+		PyObject *py_obj = (PyObject *)ue_get_python_wrapper(Stack.Object);
 		if (!py_obj) {
 			unreal_engine_py_log_error();
 			on_error = true;
@@ -122,8 +118,7 @@ void UPythonFunction::CallPythonCallable(FFrame& Stack, RESULT_DECL)
 UPythonFunction::~UPythonFunction()
 {
 	Py_XDECREF(py_callable);
-	FUnrealEnginePythonHouseKeeper::Get()->UnregisterPyUObject(this);
 #if defined(UEPY_MEMORY_DEBUG)
-	UE_LOG(LogPython, Warning, TEXT("PythonFunction callable %p XDECREF'ed"), this);
+	UE_LOG(LogPython, Warning, TEXT("PythonFunction callable XDECREF'ed"));
 #endif
 }

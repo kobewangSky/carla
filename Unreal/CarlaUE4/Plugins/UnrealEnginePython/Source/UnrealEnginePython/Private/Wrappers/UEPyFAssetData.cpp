@@ -6,7 +6,13 @@
 
 static PyObject *py_ue_fassetdata_get_asset(ue_PyFAssetData *self, PyObject * args)
 {
-	Py_RETURN_UOBJECT(self->asset_data.GetAsset());
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(self->asset_data.GetAsset());
+	if (!ret)
+	{
+		return PyErr_Format(PyExc_Exception, "unable to get UObject from asset");
+	}
+	Py_INCREF(ret);
+	return ret;
 }
 
 static PyObject *py_ue_fassetdata_is_asset_loaded(ue_PyFAssetData *self, PyObject * args)
@@ -37,16 +43,11 @@ static PyObject *py_ue_fassetdata_get_thumbnail(ue_PyFAssetData *self, PyObject 
 	return py_ue_new_fobject_thumbnail(*thumbnail);
 }
 
-#if ENGINE_MINOR_VERSION >= 18
-
+#if ENGINE_MINOR_VERSION > 17
 static PyObject *py_ue_fassetdata_has_custom_thumbnail(ue_PyFAssetData *self, PyObject * args)
 {
 
-#if ENGINE_MINOR_VERSION > 18
-	if (!ThumbnailTools::AssetHasCustomThumbnail(self->asset_data.GetFullName()))
-#else
 	if (!ThumbnailTools::AssetHasCustomThumbnail(self->asset_data))
-#endif
 	{
 		Py_RETURN_FALSE;
 	}
@@ -70,8 +71,7 @@ static PyMethodDef ue_PyFAssetData_methods[] = {
 	{ "get_asset", (PyCFunction)py_ue_fassetdata_get_asset, METH_VARARGS, "" },
 	{ "is_asset_loaded", (PyCFunction)py_ue_fassetdata_is_asset_loaded, METH_VARARGS, "" },
 	{ "get_thumbnail", (PyCFunction)py_ue_fassetdata_get_thumbnail, METH_VARARGS, "" },
-
-#if ENGINE_MINOR_VERSION >= 18
+#if ENGINE_MINOR_VERSION > 17
 	{ "has_custom_thumbnail", (PyCFunction)py_ue_fassetdata_has_custom_thumbnail, METH_VARARGS, "" },
 #endif
 	{ "has_cached_thumbnail", (PyCFunction)py_ue_fassetdata_has_cached_thumbnail, METH_VARARGS, "" },

@@ -1,5 +1,3 @@
-// Copyright 20Tab S.r.l.
-
 #include "UnrealEnginePythonPrivatePCH.h"
 #include "PyActor.h"
 
@@ -23,7 +21,7 @@ void APyActor::PreInitializeComponents()
 
 	FScopePythonGIL gil;
 
-	py_uobject = ue_get_python_uobject(this);
+	py_uobject = ue_get_python_wrapper(this);
 	if (!py_uobject)
 	{
 		unreal_engine_py_log_error();
@@ -70,7 +68,6 @@ void APyActor::PreInitializeComponents()
 
 	PyObject_SetAttrString(py_actor_instance, (char*)"uobject", (PyObject *)py_uobject);
 
-
 	if (!PyObject_HasAttrString(py_actor_instance, (char *)"tick") || PythonTickForceDisabled)
 	{
 		SetActorTickEnabled(false);
@@ -80,7 +77,6 @@ void APyActor::PreInitializeComponents()
 		ue_autobind_events_for_pyclass(py_uobject, py_actor_instance);
 
 	ue_bind_events_for_py_class_by_attribute(this, py_actor_instance);
-
 
 	if (!PyObject_HasAttrString(py_actor_instance, (char *)"pre_initialize_components"))
 		return;
@@ -136,7 +132,6 @@ void APyActor::BeginPlay()
 		return;
 	}
 	Py_DECREF(bp_ret);
-
 }
 
 
@@ -181,8 +176,6 @@ void APyActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 		Py_XDECREF(ep_ret);
 	}
-
-
 
 	Super::EndPlay(EndPlayReason);
 
@@ -289,14 +282,20 @@ APyActor::~APyActor()
 {
 	FScopePythonGIL gil;
 
+	ue_pydelegates_cleanup(py_uobject);
+
+#if defined(UEPY_MEMORY_DEBUG)
+	if (py_actor_instance && py_actor_instance->ob_refcnt != 1)
+	{
+		UE_LOG(LogPython, Error, TEXT("Inconsistent Python AActor wrapper refcnt = %d"), py_actor_instance->ob_refcnt);
+	}
+#endif
 	Py_XDECREF(py_actor_instance);
 
 #if defined(UEPY_MEMORY_DEBUG)
-	UE_LOG(LogPython, Warning, TEXT("Python AActor %p (mapped to %p) wrapper XDECREF'ed"), this, py_uobject ? py_uobject->py_proxy : nullptr);
+	UE_LOG(LogPython, Warning, TEXT("Python AActor %p (mapped to %p) wrapper XDECREF'ed"), this, py_uobject ? py_uobject->ue_object : nullptr);
 #endif
 
+	// this could trigger the distruction of the python/uobject mapper
 	Py_XDECREF(py_uobject);
-	FUnrealEnginePythonHouseKeeper::Get()->UnregisterPyUObject(this);
-
-
 }

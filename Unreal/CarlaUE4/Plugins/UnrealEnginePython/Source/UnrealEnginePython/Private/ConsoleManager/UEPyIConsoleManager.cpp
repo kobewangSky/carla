@@ -12,11 +12,7 @@ static PyObject *py_ue_iconsole_manager_add_history_entry(PyObject *cls, PyObjec
 		return nullptr;
 	}
 
-#if ENGINE_MINOR_VERSION > 18
-	IConsoleManager::Get().AddConsoleHistoryEntry(TEXT(""), UTF8_TO_TCHAR(entry));
-#else
 	IConsoleManager::Get().AddConsoleHistoryEntry(UTF8_TO_TCHAR(entry));
-#endif
 
 	Py_RETURN_NONE;
 }
@@ -24,11 +20,7 @@ static PyObject *py_ue_iconsole_manager_add_history_entry(PyObject *cls, PyObjec
 static PyObject *py_ue_iconsole_manager_get_history(PyObject *cls, PyObject * args)
 {
 	TArray<FString> history;
-#if ENGINE_MINOR_VERSION > 18
-	IConsoleManager::Get().GetConsoleHistory(TEXT(""), history);
-#else
 	IConsoleManager::Get().GetConsoleHistory(history);
-#endif
 	PyObject *py_history = PyList_New(0);
 	for (FString item : history)
 	{
@@ -140,11 +132,11 @@ static PyObject *py_ue_iconsole_manager_get_string(PyObject *cls, PyObject * arg
 		return PyErr_Format(PyExc_Exception, "console object \"%s\" is not a variable", key);
 	}
 
-	/*TConsoleVariableData<FString> *c_string = c_object->AsVariableString();
+	TConsoleVariableData<FString> *c_string = c_object->AsVariableString();
 	if (!c_string)
 	{
 		return PyErr_Format(PyExc_Exception, "console object \"%s\" is not a string", key);
-	}*/
+	}
 
 	return PyUnicode_FromString(TCHAR_TO_UTF8(*var->GetString()));
 }
@@ -515,7 +507,7 @@ static PyObject *py_ue_iconsole_manager_register_variable_float(PyObject *cls, P
 	Py_RETURN_NONE;
 }
 
-void FPythonSmartConsoleDelegate::OnConsoleCommand(const TArray < FString > & InArgs)
+void UPythonConsoleDelegate::OnConsoleCommand(const TArray < FString > & InArgs)
 {
 	FScopePythonGIL gil;
 
@@ -563,10 +555,11 @@ static PyObject *py_ue_iconsole_manager_register_command(PyObject *cls, PyObject
 		return PyErr_Format(PyExc_Exception, "console object \"%s\" already exists", key);
 	}
 
-	TSharedRef<FPythonSmartConsoleDelegate> py_delegate = MakeShareable(new FPythonSmartConsoleDelegate);
+	UPythonConsoleDelegate *py_delegate = NewObject<UPythonConsoleDelegate>();
 	py_delegate->SetPyCallable(py_callable);
+	py_delegate->AddToRoot();
 	FConsoleCommandWithArgsDelegate console_delegate;
-	console_delegate.BindSP(py_delegate, &FPythonSmartConsoleDelegate::OnConsoleCommand);
+	console_delegate.BindUObject(py_delegate, &UPythonConsoleDelegate::OnConsoleCommand);
 
 	if (!IConsoleManager::Get().RegisterConsoleCommand(UTF8_TO_TCHAR(key), help ? UTF8_TO_TCHAR(help) : UTF8_TO_TCHAR(key), console_delegate, 0))
 	{

@@ -23,14 +23,12 @@
 #endif
 
 #if WITH_EDITOR
-PyObject *py_ue_sequencer_changed(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_changed(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_bool = nullptr;
-	if (!PyArg_ParseTuple(args, "|O:sequencer_changed", &py_bool))
-	{
+	if (!PyArg_ParseTuple(args, "|O:sequencer_changed", &py_bool)) {
 		return NULL;
 	}
 
@@ -41,15 +39,13 @@ PyObject *py_ue_sequencer_changed(ue_PyUObject *self, PyObject * args)
 
 	ULevelSequence *seq = (ULevelSequence *)self->ue_object;
 
-	if (py_bool && PyObject_IsTrue(py_bool))
-	{
+	if (py_bool && PyObject_IsTrue(py_bool)) {
 		// try to open the editor for the asset
 		FAssetEditorManager::Get().OpenEditorForAsset(seq);
 	}
 
 	IAssetEditorInstance *editor = FAssetEditorManager::Get().FindEditorForAsset(seq, true);
-	if (editor)
-	{
+	if (editor) {
 		FLevelSequenceEditorToolkit *toolkit = (FLevelSequenceEditorToolkit *)editor;
 		ISequencer *sequencer = toolkit->GetSequencer().Get();
 #if ENGINE_MINOR_VERSION < 13
@@ -65,14 +61,12 @@ PyObject *py_ue_sequencer_changed(ue_PyUObject *self, PyObject * args)
 }
 #endif
 
-PyObject *py_ue_sequencer_possessable_tracks(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_possessable_tracks(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	char *guid;
-	if (!PyArg_ParseTuple(args, "s:sequencer_possessable_tracks", &guid))
-	{
+	if (!PyArg_ParseTuple(args, "s:sequencer_possessable_tracks", &guid)) {
 		return NULL;
 	}
 
@@ -80,8 +74,7 @@ PyObject *py_ue_sequencer_possessable_tracks(ue_PyUObject *self, PyObject * args
 		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
 
 	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
+	if (!FGuid::Parse(FString(guid), f_guid)) {
 		return PyErr_Format(PyExc_Exception, "invalid GUID");
 	}
 
@@ -95,15 +88,12 @@ PyObject *py_ue_sequencer_possessable_tracks(ue_PyUObject *self, PyObject * args
 		return PyErr_Format(PyExc_Exception, "GUID not found");
 
 	TArray<FMovieSceneBinding> bindings = scene->GetBindings();
-	for (FMovieSceneBinding binding : bindings)
-	{
+	for (FMovieSceneBinding binding : bindings) {
 		if (binding.GetObjectGuid() != f_guid)
 			continue;
-		for (UMovieSceneTrack *track : binding.GetTracks())
-		{
-			ue_PyUObject *ret = ue_get_python_uobject((UObject *)track);
-			if (!ret)
-			{
+		for (UMovieSceneTrack *track : binding.GetTracks()) {
+			ue_PyUObject *ret = ue_get_python_wrapper((UObject *)track);
+			if (!ret) {
 				Py_DECREF(py_tracks);
 				return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
 			}
@@ -115,64 +105,12 @@ PyObject *py_ue_sequencer_possessable_tracks(ue_PyUObject *self, PyObject * args
 	return py_tracks;
 }
 
-PyObject *py_ue_sequencer_find_possessable(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_find_possessable(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	char *guid;
-	PyObject *py_parent = nullptr;
-	if (!PyArg_ParseTuple(args, "s|O:sequencer_find_possessable", &guid, &py_parent))
-	{
-		return nullptr;
-	}
-
-	ULevelSequence *seq = ue_py_check_type<ULevelSequence>(self);
-	if (!seq)
-	{
-		return PyErr_Format(PyExc_Exception, "uobject is not a ULevelSequence");
-	}
-
-	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
-		return PyErr_Format(PyExc_Exception, "invalid GUID");
-	}
-
-#if ENGINE_MINOR_VERSION < 15
-	UObject *u_obj = seq->FindPossessableObject(f_guid, seq);
-#else
-	UObject *parent = nullptr;
-	if (py_parent)
-	{
-		parent = ue_py_check_type<UObject>(py_parent);
-		if (!parent)
-		{
-			return PyErr_Format(PyExc_Exception, "argument is not a UObject");
-		}
-	}
-	UObject *u_obj = nullptr;
-	TArray<UObject *, TInlineAllocator<1>> u_objects;
-	seq->LocateBoundObjects(f_guid, parent, u_objects);
-	if (u_objects.Num() > 0)
-	{
-		u_obj = u_objects[0];
-	}
-#endif
-	if (!u_obj)
-		return PyErr_Format(PyExc_Exception, "unable to find uobject with GUID \"%s\"", guid);
-
-	Py_RETURN_UOBJECT(u_obj);
-	}
-
-PyObject *py_ue_sequencer_find_spawnable(ue_PyUObject *self, PyObject * args)
-{
-
-	ue_py_check(self);
-
-	char *guid;
-	if (!PyArg_ParseTuple(args, "s:sequencer_find_spawnable", &guid))
-	{
+	if (!PyArg_ParseTuple(args, "s:sequencer_find_possessable", &guid)) {
 		return NULL;
 	}
 
@@ -180,8 +118,47 @@ PyObject *py_ue_sequencer_find_spawnable(ue_PyUObject *self, PyObject * args)
 		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
 
 	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
+	if (!FGuid::Parse(FString(guid), f_guid)) {
+		return PyErr_Format(PyExc_Exception, "invalid GUID");
+	}
+
+	ULevelSequence *seq = (ULevelSequence *)self->ue_object;
+
+#if ENGINE_MINOR_VERSION < 15
+	UObject *u_obj = seq->FindPossessableObject(f_guid, seq);
+#else
+	UObject *u_obj = nullptr;
+	TArray<UObject *, TInlineAllocator<1>> u_objects;
+	seq->LocateBoundObjects(f_guid, nullptr, u_objects);
+	if (u_objects.Num() > 0) {
+		u_obj = u_objects[0];
+	}
+#endif
+	if (!u_obj)
+		return PyErr_Format(PyExc_Exception, "unable to find uobject with GUID \"%s\"", guid);
+
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(u_obj);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+
+	Py_INCREF(ret);
+	return ret;
+}
+
+PyObject *py_ue_sequencer_find_spawnable(ue_PyUObject *self, PyObject * args) {
+
+	ue_py_check(self);
+
+	char *guid;
+	if (!PyArg_ParseTuple(args, "s:sequencer_find_spawnable", &guid)) {
+		return NULL;
+	}
+
+	if (!self->ue_object->IsA<ULevelSequence>())
+		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
+
+	FGuid f_guid;
+	if (!FGuid::Parse(FString(guid), f_guid)) {
 		return PyErr_Format(PyExc_Exception, "invalid GUID");
 	}
 
@@ -194,14 +171,12 @@ PyObject *py_ue_sequencer_find_spawnable(ue_PyUObject *self, PyObject * args)
 }
 
 #if WITH_EDITOR
-PyObject *py_ue_sequencer_add_possessable(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_add_possessable(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_obj;
-	if (!PyArg_ParseTuple(args, "O:sequencer_add_possessable", &py_obj))
-	{
+	if (!PyArg_ParseTuple(args, "O:sequencer_add_possessable", &py_obj)) {
 		return NULL;
 	}
 
@@ -220,8 +195,7 @@ PyObject *py_ue_sequencer_add_possessable(ue_PyUObject *self, PyObject * args)
 		name = actor->GetActorLabel();
 
 	FGuid new_guid = seq->MovieScene->AddPossessable(name, py_ue_obj->ue_object->GetClass());
-	if (!new_guid.IsValid())
-	{
+	if (!new_guid.IsValid()) {
 		return PyErr_Format(PyExc_Exception, "unable to possess object");
 	}
 
@@ -230,14 +204,12 @@ PyObject *py_ue_sequencer_add_possessable(ue_PyUObject *self, PyObject * args)
 	return PyUnicode_FromString(TCHAR_TO_UTF8(*new_guid.ToString()));
 }
 
-PyObject *py_ue_sequencer_add_actor(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_add_actor(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_obj;
-	if (!PyArg_ParseTuple(args, "O:sequencer_add_actor", &py_obj))
-	{
+	if (!PyArg_ParseTuple(args, "O:sequencer_add_actor", &py_obj)) {
 		return NULL;
 	}
 
@@ -260,14 +232,12 @@ PyObject *py_ue_sequencer_add_actor(ue_PyUObject *self, PyObject * args)
 	FAssetEditorManager::Get().OpenEditorForAsset(seq);
 
 	IAssetEditorInstance *editor = FAssetEditorManager::Get().FindEditorForAsset(seq, true);
-	if (editor)
-	{
+	if (editor) {
 		FLevelSequenceEditorToolkit *toolkit = (FLevelSequenceEditorToolkit *)editor;
 		ISequencer *sequencer = toolkit->GetSequencer().Get();
 		sequencer->AddActors(actors);
 	}
-	else
-	{
+	else {
 		return PyErr_Format(PyExc_Exception, "unable to access sequencer");
 	}
 
@@ -278,71 +248,19 @@ PyObject *py_ue_sequencer_add_actor(ue_PyUObject *self, PyObject * args)
 #else
 	FGuid new_guid = seq->FindPossessableObjectId(u_obj, u_obj.GetWorld());
 #endif
-	if (!new_guid.IsValid())
-	{
-		return PyErr_Format(PyExc_Exception, "unable to find guid");
-	}
-
-	return PyUnicode_FromString(TCHAR_TO_UTF8(*new_guid.ToString()));
-	}
-
-PyObject *py_ue_sequencer_add_actor_component(ue_PyUObject *self, PyObject * args)
-{
-
-	ue_py_check(self);
-
-	PyObject *py_obj;
-	if (!PyArg_ParseTuple(args, "O:sequencer_add_actor_component", &py_obj))
-	{
-		return NULL;
-	}
-
-	if (!self->ue_object->IsA<ULevelSequence>())
-		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
-
-	ue_PyUObject *py_ue_obj = ue_is_pyuobject(py_obj);
-	if (!py_ue_obj)
-		return PyErr_Format(PyExc_Exception, "argument is not a uobject");
-
-	if (!py_ue_obj->ue_object->IsA<UActorComponent>())
-		return PyErr_Format(PyExc_Exception, "argument is not an actorcomponent");
-
-	ULevelSequence *seq = (ULevelSequence *)self->ue_object;
-
-	UActorComponent* actorComponent = (UActorComponent *)py_ue_obj->ue_object;
-
-	// try to open the editor for the asset
-	FAssetEditorManager::Get().OpenEditorForAsset(seq);
-
-	IAssetEditorInstance *editor = FAssetEditorManager::Get().FindEditorForAsset(seq, true);
-	FGuid new_guid;
-	if (editor)
-	{
-		FLevelSequenceEditorToolkit *toolkit = (FLevelSequenceEditorToolkit *)editor;
-		ISequencer *sequencer = toolkit->GetSequencer().Get();
-		new_guid = sequencer->GetHandleToObject(actorComponent);
-	}
-	else
-	{
-		return PyErr_Format(PyExc_Exception, "unable to access sequencer");
-	}
-
-	if (!new_guid.IsValid())
-	{
+	if (!new_guid.IsValid()) {
 		return PyErr_Format(PyExc_Exception, "unable to find guid");
 	}
 
 	return PyUnicode_FromString(TCHAR_TO_UTF8(*new_guid.ToString()));
 }
 
-PyObject *py_ue_sequencer_make_new_spawnable(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_make_new_spawnable(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_obj;
-	if (!PyArg_ParseTuple(args, "O:sequencer_make_new_spawnable", &py_obj))
-	{
+	if (!PyArg_ParseTuple(args, "O:sequencer_add_spawnable", &py_obj)) {
 		return NULL;
 	}
 
@@ -364,8 +282,7 @@ PyObject *py_ue_sequencer_make_new_spawnable(ue_PyUObject *self, PyObject * args
 	FAssetEditorManager::Get().OpenEditorForAsset(seq);
 
 	IAssetEditorInstance *editor = FAssetEditorManager::Get().FindEditorForAsset(seq, true);
-	if (!editor)
-	{
+	if (!editor) {
 		return PyErr_Format(PyExc_Exception, "unable to access sequencer");
 	}
 
@@ -377,8 +294,7 @@ PyObject *py_ue_sequencer_make_new_spawnable(ue_PyUObject *self, PyObject * args
 }
 #endif
 
-PyObject *py_ue_sequencer_master_tracks(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_master_tracks(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -392,11 +308,9 @@ PyObject *py_ue_sequencer_master_tracks(ue_PyUObject *self, PyObject * args)
 
 	TArray<UMovieSceneTrack *> tracks = scene->GetMasterTracks();
 
-	for (UMovieSceneTrack *track : tracks)
-	{
-		ue_PyUObject *ret = ue_get_python_uobject((UObject *)track);
-		if (!ret)
-		{
+	for (UMovieSceneTrack *track : tracks) {
+		ue_PyUObject *ret = ue_get_python_wrapper((UObject *)track);
+		if (!ret) {
 			Py_DECREF(py_tracks);
 			return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
 		}
@@ -406,28 +320,7 @@ PyObject *py_ue_sequencer_master_tracks(ue_PyUObject *self, PyObject * args)
 	return py_tracks;
 }
 
-PyObject *py_ue_sequencer_get_camera_cut_track(ue_PyUObject *self, PyObject * args)
-{
-
-	ue_py_check(self);
-
-	if (!self->ue_object->IsA<ULevelSequence>())
-		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
-
-	ULevelSequence *seq = (ULevelSequence *)self->ue_object;
-	UMovieScene	*scene = seq->GetMovieScene();
-
-	UMovieSceneTrack *track = scene->GetCameraCutTrack();
-	if (!track)
-	{
-		return PyErr_Format(PyExc_Exception, "unable to find camera cut track");
-	}
-
-	Py_RETURN_UOBJECT(track);
-}
-
-PyObject *py_ue_sequencer_possessables(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_possessables(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -438,8 +331,7 @@ PyObject *py_ue_sequencer_possessables(ue_PyUObject *self, PyObject * args)
 	UMovieScene	*scene = seq->GetMovieScene();
 
 	PyObject *py_possessables = PyList_New(0);
-	for (int32 i = 0; i < scene->GetPossessableCount(); i++)
-	{
+	for (int32 i = 0; i < scene->GetPossessableCount(); i++) {
 		FMovieScenePossessable possessable = scene->GetPossessable(i);
 		PyObject *py_possessable = py_ue_new_uscriptstruct(possessable.StaticStruct(), (uint8 *)&possessable);
 		PyList_Append(py_possessables, py_possessable);
@@ -448,8 +340,7 @@ PyObject *py_ue_sequencer_possessables(ue_PyUObject *self, PyObject * args)
 	return py_possessables;
 }
 
-PyObject *py_ue_sequencer_possessables_guid(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_possessables_guid(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -460,8 +351,7 @@ PyObject *py_ue_sequencer_possessables_guid(ue_PyUObject *self, PyObject * args)
 	UMovieScene	*scene = seq->GetMovieScene();
 
 	PyObject *py_possessables = PyList_New(0);
-	for (int32 i = 0; i < scene->GetPossessableCount(); i++)
-	{
+	for (int32 i = 0; i < scene->GetPossessableCount(); i++) {
 		FMovieScenePossessable possessable = scene->GetPossessable(i);
 		PyObject *py_possessable = PyUnicode_FromString(TCHAR_TO_UTF8(*possessable.GetGuid().ToString()));
 		PyList_Append(py_possessables, py_possessable);
@@ -471,8 +361,7 @@ PyObject *py_ue_sequencer_possessables_guid(ue_PyUObject *self, PyObject * args)
 }
 
 #if WITH_EDITOR
-PyObject *py_ue_sequencer_folders(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_folders(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -480,23 +369,19 @@ PyObject *py_ue_sequencer_folders(ue_PyUObject *self, PyObject * args)
 		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
 
 	PyObject *py_obj = nullptr;
-	if (!PyArg_ParseTuple(args, "|O:sequencer_folders", &py_obj))
-	{
+	if (!PyArg_ParseTuple(args, "|O:sequencer_folders", &py_obj)) {
 		return NULL;
 	}
 
 	UMovieSceneFolder *parent_folder = nullptr;
 
-	if (py_obj)
-	{
+	if (py_obj) {
 		ue_PyUObject *ue_py_obj = ue_is_pyuobject(py_obj);
-		if (!ue_py_obj)
-		{
+		if (!ue_py_obj) {
 			return PyErr_Format(PyExc_Exception, "argument is not a UObject");
 		}
 		parent_folder = Cast<UMovieSceneFolder>(ue_py_obj->ue_object);
-		if (!parent_folder)
-		{
+		if (!parent_folder) {
 			return PyErr_Format(PyExc_Exception, "argument is not a UMovieSceneFolder");
 		}
 	}
@@ -509,16 +394,13 @@ PyObject *py_ue_sequencer_folders(ue_PyUObject *self, PyObject * args)
 	TArray<UMovieSceneFolder *> folders;
 	if (!parent_folder)
 		folders = scene->GetRootFolders();
-	else
-	{
+	else {
 		folders = parent_folder->GetChildFolders();
 	}
 
-	for (UMovieSceneFolder *folder : folders)
-	{
-		ue_PyUObject *ret = ue_get_python_uobject((UObject *)folder);
-		if (!ret)
-		{
+	for (UMovieSceneFolder *folder : folders) {
+		ue_PyUObject *ret = ue_get_python_wrapper((UObject *)folder);
+		if (!ret) {
 			Py_DECREF(py_folders);
 			return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
 		}
@@ -528,8 +410,7 @@ PyObject *py_ue_sequencer_folders(ue_PyUObject *self, PyObject * args)
 	return py_folders;
 }
 
-PyObject *py_ue_sequencer_create_folder(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_create_folder(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -538,23 +419,19 @@ PyObject *py_ue_sequencer_create_folder(ue_PyUObject *self, PyObject * args)
 
 	PyObject *py_obj = nullptr;
 	char *name;
-	if (!PyArg_ParseTuple(args, "s|O:sequencer_create_folder", &name, &py_obj))
-	{
+	if (!PyArg_ParseTuple(args, "s|O:sequencer_create_folder", &name, &py_obj)) {
 		return NULL;
 	}
 
 	UMovieSceneFolder *parent_folder = nullptr;
 
-	if (py_obj)
-	{
+	if (py_obj) {
 		ue_PyUObject *ue_py_obj = ue_is_pyuobject(py_obj);
-		if (!ue_py_obj)
-		{
+		if (!ue_py_obj) {
 			return PyErr_Format(PyExc_Exception, "argument is not a UObject");
 		}
 		parent_folder = Cast<UMovieSceneFolder>(ue_py_obj->ue_object);
-		if (!parent_folder)
-		{
+		if (!parent_folder) {
 			return PyErr_Format(PyExc_Exception, "argument is not a UMovieSceneFolder");
 		}
 	}
@@ -565,23 +442,24 @@ PyObject *py_ue_sequencer_create_folder(ue_PyUObject *self, PyObject * args)
 	UMovieSceneFolder *new_folder = NewObject<UMovieSceneFolder>(scene, NAME_None, RF_Transactional);
 	new_folder->SetFolderName(FName(name));
 
-	if (parent_folder)
-	{
+	if (parent_folder) {
 		parent_folder->Modify();
 		parent_folder->AddChildFolder(new_folder);
 	}
-	else
-	{
+	else {
 		scene->Modify();
 		scene->GetRootFolders().Add(new_folder);
 	}
 
-	Py_RETURN_UOBJECT(new_folder);
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(new_folder);
+	if (!ret) {
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	}
+	return ret;
 }
 #endif
 
-PyObject *py_ue_sequencer_sections(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_sections(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -595,12 +473,9 @@ PyObject *py_ue_sequencer_sections(ue_PyUObject *self, PyObject * args)
 
 	TArray<UMovieSceneSection *> sections = scene->GetAllSections();
 
-	for (UMovieSceneSection *section : sections)
-	{
-
-		ue_PyUObject *ret = ue_get_python_uobject((UObject *)section);
-		if (!ret)
-		{
+	for (UMovieSceneSection *section : sections) {
+		ue_PyUObject *ret = ue_get_python_wrapper((UObject *)section);
+		if (!ret) {
 			Py_DECREF(py_sections);
 			return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
 		}
@@ -610,8 +485,7 @@ PyObject *py_ue_sequencer_sections(ue_PyUObject *self, PyObject * args)
 	return py_sections;
 }
 
-PyObject *py_ue_sequencer_track_sections(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_track_sections(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -624,11 +498,9 @@ PyObject *py_ue_sequencer_track_sections(ue_PyUObject *self, PyObject * args)
 
 	TArray<UMovieSceneSection *> sections = track->GetAllSections();
 
-	for (UMovieSceneSection *section : sections)
-	{
-		ue_PyUObject *ret = ue_get_python_uobject((UObject *)section);
-		if (!ret)
-		{
+	for (UMovieSceneSection *section : sections) {
+		ue_PyUObject *ret = ue_get_python_wrapper((UObject *)section);
+		if (!ret) {
 			Py_DECREF(py_sections);
 			return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
 		}
@@ -639,8 +511,7 @@ PyObject *py_ue_sequencer_track_sections(ue_PyUObject *self, PyObject * args)
 }
 
 #if WITH_EDITOR
-PyObject *py_ue_sequencer_track_add_section(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_track_add_section(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -653,18 +524,21 @@ PyObject *py_ue_sequencer_track_add_section(ue_PyUObject *self, PyObject * args)
 
 	track->AddSection(*new_section);
 
-	Py_RETURN_UOBJECT(new_section);
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(new_section);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+
+	Py_INCREF(ret);
+	return ret;
 }
 #endif
 
-PyObject *py_ue_sequencer_add_master_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_add_master_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *obj;
-	if (!PyArg_ParseTuple(args, "O:sequencer_add_master_track", &obj))
-	{
+	if (!PyArg_ParseTuple(args, "O:sequencer_add_master_track", &obj)) {
 		return NULL;
 	}
 
@@ -690,20 +564,23 @@ PyObject *py_ue_sequencer_add_master_track(ue_PyUObject *self, PyObject * args)
 	if (!track)
 		return PyErr_Format(PyExc_Exception, "unable to create new master track");
 
-	Py_RETURN_UOBJECT(track);
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(track);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+
+	Py_INCREF(ret);
+	return ret;
 }
 
 #if WITH_EDITOR
-PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	float time;
 	PyObject *py_value;
 	int interpolation = 0;
-	if (!PyArg_ParseTuple(args, "fO|i:sequencer_section_add_key", &time, &py_value, &interpolation))
-	{
+	if (!PyArg_ParseTuple(args, "fO|i:sequencer_section_add_key", &time, &py_value, &interpolation)) {
 		return NULL;
 	}
 
@@ -712,34 +589,30 @@ PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args)
 
 	UMovieSceneSection *section = (UMovieSceneSection *)self->ue_object;
 
-	if (auto section_float = Cast<UMovieSceneFloatSection>(section))
-	{
-		if (PyNumber_Check(py_value))
-		{
+	if (auto section_float = Cast<UMovieSceneFloatSection>(section)) {
+		if (PyNumber_Check(py_value)) {
 			PyObject *f_value = PyNumber_Float(py_value);
 			float value = PyFloat_AsDouble(f_value);
 			Py_DECREF(f_value);
 			section_float->AddKey(time, value, (EMovieSceneKeyInterpolation)interpolation);
-			Py_RETURN_NONE;
+			Py_INCREF(Py_None);
+			return Py_None;
 		}
 	}
 
-	else if (auto section_bool = Cast<UMovieSceneBoolSection>(section))
-	{
-		if (PyBool_Check(py_value))
-		{
+	else if (auto section_bool = Cast<UMovieSceneBoolSection>(section)) {
+		if (PyBool_Check(py_value)) {
 			bool value = false;
 			if (PyObject_IsTrue(py_value))
 				value = true;
 			section_bool->AddKey(time, value, (EMovieSceneKeyInterpolation)interpolation);
-			Py_RETURN_NONE;
+			Py_INCREF(Py_None);
+			return Py_None;
 		}
 	}
 
-	else if (auto section_transform = Cast<UMovieScene3DTransformSection>(section))
-	{
-		if (ue_PyFTransform *py_transform = py_ue_is_ftransform(py_value))
-		{
+	else if (auto section_transform = Cast<UMovieScene3DTransformSection>(section)) {
+		if (ue_PyFTransform *py_transform = py_ue_is_ftransform(py_value)) {
 			bool unwind = false;
 			FTransform transform = py_transform->transform;
 
@@ -751,12 +624,9 @@ PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args)
 			section_transform->AddKey(time, ty, (EMovieSceneKeyInterpolation)interpolation);
 			section_transform->AddKey(time, tz, (EMovieSceneKeyInterpolation)interpolation);
 
-			/*FTransformKey rx = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::X, transform.GetRotation().Rotator().Roll, unwind);
-			FTransformKey ry = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Y, transform.GetRotation().Rotator().Pitch, unwind);
-			FTransformKey rz = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Z, transform.GetRotation().Rotator().Yaw, unwind);*/
-			FTransformKey rx = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::X, transform.GetRotation().Euler().X, unwind);
-			FTransformKey ry = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Y, transform.GetRotation().Euler().Y, unwind);
-			FTransformKey rz = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Z, transform.GetRotation().Euler().Z, unwind);
+			FTransformKey rx = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::X, transform.GetRotation().X, unwind);
+			FTransformKey ry = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Y, transform.GetRotation().Y, unwind);
+			FTransformKey rz = FTransformKey(EKey3DTransformChannel::Rotation, EAxis::Z, transform.GetRotation().Z, unwind);
 			section_transform->AddKey(time, rx, (EMovieSceneKeyInterpolation)interpolation);
 			section_transform->AddKey(time, ry, (EMovieSceneKeyInterpolation)interpolation);
 			section_transform->AddKey(time, rz, (EMovieSceneKeyInterpolation)interpolation);
@@ -768,14 +638,13 @@ PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args)
 			section_transform->AddKey(time, sy, (EMovieSceneKeyInterpolation)interpolation);
 			section_transform->AddKey(time, sz, (EMovieSceneKeyInterpolation)interpolation);
 
-			Py_RETURN_NONE;
+			Py_INCREF(Py_None);
+			return Py_None;
 		}
 	}
 
-	else if (auto section_vector = Cast<UMovieSceneVectorSection>(section))
-	{
-		if (ue_PyFVector *py_vector = py_ue_is_fvector(py_value))
-		{
+	else if (auto section_vector = Cast<UMovieSceneVectorSection>(section)) {
+		if (ue_PyFVector *py_vector = py_ue_is_fvector(py_value)) {
 			FVector vec = py_vector->vec;
 			FVectorKey vx = FVectorKey(EKeyVectorChannel::X, vec.X);
 			FVectorKey vy = FVectorKey(EKeyVectorChannel::Y, vec.Y);
@@ -785,15 +654,15 @@ PyObject *py_ue_sequencer_section_add_key(ue_PyUObject *self, PyObject * args)
 			section_vector->AddKey(time, vy, (EMovieSceneKeyInterpolation)interpolation);
 			section_vector->AddKey(time, vz, (EMovieSceneKeyInterpolation)interpolation);
 
-			Py_RETURN_NONE;
+			Py_INCREF(Py_None);
+			return Py_None;
 		}
 	}
 
 	return PyErr_Format(PyExc_Exception, "unsupported section type: %s", TCHAR_TO_UTF8(*section->GetClass()->GetName()));
 }
 
-PyObject *py_ue_sequencer_add_camera_cut_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_add_camera_cut_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -805,46 +674,46 @@ PyObject *py_ue_sequencer_add_camera_cut_track(ue_PyUObject *self, PyObject * ar
 
 	UMovieSceneTrack *track = scene->AddCameraCutTrack(UMovieSceneCameraCutTrack::StaticClass());
 
-	Py_RETURN_UOBJECT(track);
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(track);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+
+	Py_INCREF(ret);
+	return ret;
 }
 
 
-PyObject *py_ue_sequencer_remove_possessable(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_remove_possessable(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	char *guid;
-	if (!PyArg_ParseTuple(args, "s:sequencer_remove_possessable", &guid))
-	{
+	if (!PyArg_ParseTuple(args, "s:sequencer_remove_possessable", &guid)) {
 		return nullptr;
 	}
-
+		
 	ULevelSequence *seq = ue_py_check_type<ULevelSequence>(self);
 	if (!seq)
 		return PyErr_Format(PyExc_Exception, "uobject is not a LevelSequence");
 	UMovieScene	*scene = seq->GetMovieScene();
 
 	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
+	if (!FGuid::Parse(FString(guid), f_guid)) {
 		return PyErr_Format(PyExc_Exception, "invalid guid");
 	}
-
+	
 	if (scene->RemovePossessable(f_guid))
 		Py_RETURN_TRUE;
 
 	Py_RETURN_FALSE;
 }
 
-PyObject *py_ue_sequencer_remove_spawnable(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_remove_spawnable(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	char *guid;
-	if (!PyArg_ParseTuple(args, "s:sequencer_remove_spawnable", &guid))
-	{
+	if (!PyArg_ParseTuple(args, "s:sequencer_remove_spawnable", &guid)) {
 		return nullptr;
 	}
 
@@ -854,8 +723,7 @@ PyObject *py_ue_sequencer_remove_spawnable(ue_PyUObject *self, PyObject * args)
 	UMovieScene	*scene = seq->GetMovieScene();
 
 	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
+	if (!FGuid::Parse(FString(guid), f_guid)) {
 		return PyErr_Format(PyExc_Exception, "invalid guid");
 	}
 
@@ -865,8 +733,7 @@ PyObject *py_ue_sequencer_remove_spawnable(ue_PyUObject *self, PyObject * args)
 	Py_RETURN_FALSE;
 }
 
-PyObject *py_ue_sequencer_remove_camera_cut_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_remove_camera_cut_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
@@ -880,14 +747,12 @@ PyObject *py_ue_sequencer_remove_camera_cut_track(ue_PyUObject *self, PyObject *
 	Py_RETURN_NONE;
 }
 
-PyObject *py_ue_sequencer_remove_master_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_remove_master_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_track;
-	if (!PyArg_ParseTuple(args, "O:sequencer_remove_master_track", &py_track))
-	{
+	if (!PyArg_ParseTuple(args, "track:sequencer_remove_master_track", &py_track)) {
 		return nullptr;
 	}
 
@@ -907,14 +772,12 @@ PyObject *py_ue_sequencer_remove_master_track(ue_PyUObject *self, PyObject * arg
 	Py_RETURN_FALSE;
 }
 
-PyObject *py_ue_sequencer_remove_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_remove_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *py_track;
-	if (!PyArg_ParseTuple(args, "O:sequencer_remove_track", &py_track))
-	{
+	if (!PyArg_ParseTuple(args, "track:sequencer_remove_track", &py_track)) {
 		return nullptr;
 	}
 
@@ -936,15 +799,13 @@ PyObject *py_ue_sequencer_remove_track(ue_PyUObject *self, PyObject * args)
 
 #endif
 
-PyObject *py_ue_sequencer_add_track(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_add_track(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	PyObject *obj;
 	char *guid;
-	if (!PyArg_ParseTuple(args, "Os:sequencer_add_track", &obj, &guid))
-	{
+	if (!PyArg_ParseTuple(args, "Os:sequencer_add_track", &obj, &guid)) {
 		return NULL;
 	}
 
@@ -967,50 +828,49 @@ PyObject *py_ue_sequencer_add_track(ue_PyUObject *self, PyObject * args)
 		return PyErr_Format(PyExc_Exception, "uobject is not a UMovieSceneTrack class");
 
 	FGuid f_guid;
-	if (!FGuid::Parse(FString(guid), f_guid))
-	{
+	if (!FGuid::Parse(FString(guid), f_guid)) {
 		return PyErr_Format(PyExc_Exception, "invalid guid");
 	}
 	UMovieSceneTrack *track = scene->AddTrack(u_class, f_guid);
 	if (!track)
 		return PyErr_Format(PyExc_Exception, "unable to create new track");
 
-	Py_RETURN_UOBJECT(track);
+	PyObject *ret = (PyObject *)ue_get_python_wrapper(track);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+
+	Py_INCREF(ret);
+	return ret;
 }
 
 #if WITH_EDITOR
 // smart functions allowing the set/get of display names to various sequencer objects
-PyObject *py_ue_sequencer_set_display_name(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_set_display_name(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
 	char *name;
-	if (!PyArg_ParseTuple(args, "s:sequencer_set_display_name", &name))
-	{
+	if (!PyArg_ParseTuple(args, "s:sequencer_set_display_name", &name)) {
 		return NULL;
 	}
 
-	if (self->ue_object->IsA<UMovieSceneNameableTrack>())
-	{
+	if (self->ue_object->IsA<UMovieSceneNameableTrack>()) {
 		UMovieSceneNameableTrack *track = (UMovieSceneNameableTrack *)self->ue_object;
 		track->SetDisplayName(FText::FromString(UTF8_TO_TCHAR(name)));
 	}
-	else
-	{
+	else {
 		return PyErr_Format(PyExc_Exception, "the uobject does not expose the SetDisplayName() method");
 	}
 
-	Py_RETURN_NONE;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
-PyObject *py_ue_sequencer_get_display_name(ue_PyUObject *self, PyObject * args)
-{
+PyObject *py_ue_sequencer_get_display_name(ue_PyUObject *self, PyObject * args) {
 
 	ue_py_check(self);
 
-	if (self->ue_object->IsA<UMovieSceneNameableTrack>())
-	{
+	if (self->ue_object->IsA<UMovieSceneNameableTrack>()) {
 		UMovieSceneNameableTrack *track = (UMovieSceneNameableTrack *)self->ue_object;
 		FText name = track->GetDefaultDisplayName();
 		return PyUnicode_FromString(TCHAR_TO_UTF8(*name.ToString()));

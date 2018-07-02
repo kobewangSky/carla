@@ -137,13 +137,10 @@ PyObject *py_ue_add_angular_impulse(ue_PyUObject * self, PyObject * args)
 	if (py_obj_b_vel_change && PyObject_IsTrue(py_obj_b_vel_change))
 		b_vel_change = true;
 
-#if ENGINE_MINOR_VERSION >= 18
-	primitive->AddAngularImpulseInRadians(impulse, f_bone_name, b_vel_change);
-#else
 	primitive->AddAngularImpulse(impulse, f_bone_name, b_vel_change);
-#endif
 
-	Py_RETURN_NONE;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -240,13 +237,10 @@ PyObject *py_ue_add_torque(ue_PyUObject * self, PyObject * args)
 	if (py_obj_b_accel_change && PyObject_IsTrue(py_obj_b_accel_change))
 		b_accel_change = true;
 
-#if ENGINE_MINOR_VERSION >= 18
-	primitive->AddTorqueInRadians(torque, f_bone_name, b_accel_change);
-#else
 	primitive->AddTorque(torque, f_bone_name, b_accel_change);
-#endif
 
-	Py_RETURN_NONE;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -375,14 +369,12 @@ PyObject *py_ue_set_physics_angular_velocity(ue_PyUObject * self, PyObject * arg
 		f_bone_name = FName(UTF8_TO_TCHAR(bone_name));
 	}
 
-#if ENGINE_MINOR_VERSION >= 18
-	primitive->SetPhysicsAngularVelocityInDegrees(new_ang_vel, add_to_current, f_bone_name);
-#else
 	primitive->SetPhysicsAngularVelocity(new_ang_vel, add_to_current, f_bone_name);
-#endif
 
-	Py_RETURN_NONE;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
+
 
 PyObject *py_ue_get_physics_angular_velocity(ue_PyUObject * self, PyObject * args)
 {
@@ -466,11 +458,11 @@ PyObject *py_ue_destructible_apply_damage(ue_PyUObject * self, PyObject * args)
 #if ENGINE_MINOR_VERSION < 18
 				destructible = (UDestructibleComponent *)actor->GetComponentByClass(UDestructibleComponent::StaticClass());
 #else
-				for (UActorComponent *checked_component : actor->GetComponents())
+				for (UActorComponent *component : actor->GetComponents())
 				{
-					if (Cast<IDestructibleInterface>(checked_component))
+					if (Cast<IDestructibleInterface>(component))
 					{
-						destructible = (IDestructibleInterface *)checked_component;
+						destructible = (IDestructibleInterface *)component;
 						break;
 					}
 				}

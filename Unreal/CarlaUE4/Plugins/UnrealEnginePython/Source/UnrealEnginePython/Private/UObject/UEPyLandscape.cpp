@@ -12,7 +12,11 @@ PyObject *py_ue_create_landscape_info(ue_PyUObject *self, PyObject * args)
 	if (!landscape)
 		return PyErr_Format(PyExc_Exception, "uobject is not a ULandscapeProxy");
 
-	Py_RETURN_UOBJECT(landscape->CreateLandscapeInfo());
+	ue_PyUObject *ret = ue_get_python_wrapper(landscape->CreateLandscapeInfo());
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "uobject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_get_landscape_info(ue_PyUObject *self, PyObject * args)
@@ -28,7 +32,11 @@ PyObject *py_ue_get_landscape_info(ue_PyUObject *self, PyObject * args)
 	if (!info)
 		Py_RETURN_NONE;
 
-	Py_RETURN_UOBJECT(info);
+	ue_PyUObject *ret = ue_get_python_wrapper(info);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "uobject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_landscape_import(ue_PyUObject *self, PyObject * args)

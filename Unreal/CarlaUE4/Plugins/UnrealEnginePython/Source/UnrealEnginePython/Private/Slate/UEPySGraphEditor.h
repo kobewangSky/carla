@@ -2,7 +2,7 @@
 
 #include "UnrealEnginePython.h"
 
-#if WITH_EDITOR
+
 #include "UEPySCompoundWidget.h"
 
 #include "Editor/UnrealEd/Public/GraphEditor.h"
@@ -15,4 +15,3 @@ typedef struct {
 } ue_PySGraphEditor;
 
 void ue_python_init_sgraph_editor(PyObject *);
-#endif

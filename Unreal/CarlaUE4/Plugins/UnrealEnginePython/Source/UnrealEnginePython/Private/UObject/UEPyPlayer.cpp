@@ -19,7 +19,11 @@ PyObject *py_ue_get_player_controller(ue_PyUObject *self, PyObject * args)
 	if (!controller)
 		return PyErr_Format(PyExc_Exception, "unable to retrieve controller %d", controller_id);
 
-	Py_RETURN_UOBJECT(controller);
+	ue_PyUObject *ret = ue_get_python_wrapper(controller);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_get_player_camera_manager(ue_PyUObject *self, PyObject * args)
@@ -41,7 +45,11 @@ PyObject *py_ue_get_player_camera_manager(ue_PyUObject *self, PyObject * args)
 	if (!camera)
 		return PyErr_Format(PyExc_Exception, "unable to retrieve camera manager for controller %d", controller_id);
 
-	Py_RETURN_UOBJECT(camera);
+	ue_PyUObject *ret = ue_get_python_wrapper(camera);
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_get_player_hud(ue_PyUObject *self, PyObject * args)
@@ -63,7 +71,11 @@ PyObject *py_ue_get_player_hud(ue_PyUObject *self, PyObject * args)
 	if (!controller)
 		return PyErr_Format(PyExc_Exception, "unable to retrieve controller %d", controller_id);
 
-	Py_RETURN_UOBJECT(controller->GetHUD());
+	ue_PyUObject *ret = ue_get_python_wrapper(controller->GetHUD());
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_set_player_hud(ue_PyUObject *self, PyObject * args)
@@ -118,7 +130,11 @@ PyObject *py_ue_get_player_pawn(ue_PyUObject *self, PyObject * args)
 	if (!controller->GetPawn())
 		Py_RETURN_NONE;
 
-	Py_RETURN_UOBJECT(controller->GetPawn());
+	ue_PyUObject *ret = ue_get_python_wrapper(controller->GetPawn());
+	if (!ret)
+		return PyErr_Format(PyExc_Exception, "PyUObject is in invalid state");
+	Py_INCREF(ret);
+	return (PyObject *)ret;
 }
 
 PyObject *py_ue_create_player(ue_PyUObject *self, PyObject * args)

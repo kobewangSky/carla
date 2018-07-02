@@ -2,7 +2,6 @@
 #include "UnrealEnginePython.h"
 
 #if WITH_EDITOR
-#if ENGINE_MINOR_VERSION > 12
 
 #include <fbxsdk.h>
 
@@ -16,7 +15,6 @@ struct ue_PyFbxMesh
 
 void ue_python_init_fbx_mesh(PyObject *);
 
-PyObject *py_ue_new_fbx_mesh(FbxMesh *);
+PyObject *py_ue_new_fbx_mesh(FbxNode *);
 
-#endif
 #endif

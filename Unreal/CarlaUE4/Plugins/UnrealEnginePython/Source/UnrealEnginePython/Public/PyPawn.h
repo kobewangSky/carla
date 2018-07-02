@@ -8,7 +8,7 @@
 
 
 UCLASS(BlueprintType, Blueprintable)
-class UNREALENGINEPYTHON_API APyPawn : public APawn
+class APyPawn : public APawn
 {
 	GENERATED_BODY()
 

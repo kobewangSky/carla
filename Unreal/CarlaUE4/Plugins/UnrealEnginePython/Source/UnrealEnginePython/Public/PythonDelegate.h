@@ -18,6 +18,12 @@ public:
 	void PyInputHandler();
 	void PyInputAxisHandler(float value);
 
+	bool Tick(float DeltaTime);
+
+#if WITH_EDITOR
+	void PyFOnAssetPostImport(UFactory *factory, UObject *u_object);
+#endif
+
 protected:
 	UFunction *signature;
 	bool signature_set;
@@ -27,6 +33,6 @@ protected:
 
 	PyObject *py_callable;
 
-
+	
 };
 
