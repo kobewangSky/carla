@@ -52,8 +52,8 @@ public:
 
 				FBPTerminal **Target = Context.NetMap.Find(Pin);
 
-				const FName&FieldName = Pin->PinName;
-				const FName&FieldType = Pin->PinType.PinCategory;
+				const FName FieldName = FName(*Pin->PinName);
+				const FName FieldType = FName(*Pin->PinType.PinCategory);
 
 				FBPTerminal* FieldNameTerm = Context.CreateLocalTerminal(ETerminalSpecification::TS_Literal);
 				FieldNameTerm->Type.PinCategory = CompilerContext.GetSchema()->PC_String;
@@ -70,19 +70,19 @@ public:
 
 				bool bIsArray = Pin->PinType.IsArray();
 
-				if (FieldType == CompilerContext.GetSchema()->PC_Boolean)
+				if (FieldType == FName(*CompilerContext.GetSchema()->PC_Boolean))
 				{
 					FunctionName = bIsArray ? TEXT("GetBoolArrayField") : TEXT("GetBoolField");
 				}
-				else if (FieldType == CompilerContext.GetSchema()->PC_Float)
+				else if (FieldType == FName(*CompilerContext.GetSchema()->PC_Float))
 				{
 					FunctionName = bIsArray ? TEXT("GetNumberArrayField") : TEXT("GetNumberField");
 				}
-				else if (FieldType == CompilerContext.GetSchema()->PC_String)
+				else if (FieldType == FName(*CompilerContext.GetSchema()->PC_String))
 				{
 					FunctionName = bIsArray ? TEXT("GetStringArrayField") : TEXT("GetStringField");
 				}
-				else if (FieldType == CompilerContext.GetSchema()->PC_Object)
+				else if (FieldType == FName(*CompilerContext.GetSchema()->PC_Object))
 				{
 					FunctionName = bIsArray ? TEXT("GetObjectArrayField") : TEXT("GetObjectField");
 				}
@@ -255,24 +255,24 @@ void USIOJ_BreakJson::CreateProjectionPins(UEdGraphPin *Source)
 
 		switch ((*it).Type) {
 			case ESIOJ_JsonType::JSON_Bool:
-				Type = K2Schema->PC_Boolean;
+				Type = FName(*K2Schema->PC_Boolean);
 				break;
 
 			case ESIOJ_JsonType::JSON_Number:
-				Type = K2Schema->PC_Float;
+				Type = FName(*K2Schema->PC_Float);
 				break;
 
 			case ESIOJ_JsonType::JSON_String:
-				Type = K2Schema->PC_String;
+				Type = FName(*K2Schema->PC_String);
 				break;
 
 			case ESIOJ_JsonType::JSON_Object:
-				Type = K2Schema->PC_Object;
+				Type = FName(*K2Schema->PC_Object);
 				Subtype = Class;
 				break;
 		}
 
-		UEdGraphPin *OutputPin = CreatePin(EGPD_Output, Type, TEXT(""), Subtype, (*it).bIsArray, false, (*it).Name);
+		UEdGraphPin *OutputPin = CreatePin(EGPD_Output, Type.ToString(), TEXT(""), Subtype, (*it).bIsArray, false, (*it).Name);
 	}
 }
 
