@@ -11,6 +11,7 @@ import os
 
 from collections import namedtuple
 
+
 try:
     import numpy
 except ImportError:

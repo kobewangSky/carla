@@ -1,6 +1,8 @@
 import tensorflow as tf
 import unreal_engine as ue
 from TFPluginAPI import TFPluginAPI
+import cv2
+import numpy as np
 
 class ExampleAPI(TFPluginAPI):
 
@@ -11,7 +13,7 @@ class ExampleAPI(TFPluginAPI):
 		#Usually store session, graph, and model if using keras
 		self.sess = tf.InteractiveSession()
 		self.graph = tf.get_default_graph()
-
+		print("ExampleApi Test--------------------------------------------------")
 	#expected api: storedModel and session, json inputs
 	def onJsonInput(self, jsonInput):
 		#e.g. our json input could be a pixel array
@@ -27,6 +29,19 @@ class ExampleAPI(TFPluginAPI):
 		#callEvent('myEvent', 'myData')
 
 		#return a json you will parse e.g. a prediction
+		print("ExampleApi Get data--------------------------------------------------")
+		pixelarray = jsonInput['pixels']
+		print(pixelarray)
+		#x_raw = np.reshape(pixelarray, (1024, 2048, 4))
+		
+		print("------------------------------------------------------------------")
+		#bgr = x_raw[...,[2,1,0]]
+		#cv2.imshow("image", bgr)	
+		#print(jsonInput['sizex'])
+		#print(jsonInput['sizey'])
+		#print(jsonInput['channels'])
+		#print(jsonInput['pixels'])	
+		
 		result = {}
 		result['prediction'] = -1
 

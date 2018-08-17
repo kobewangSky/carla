@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
 #include "TensorFlowBlueprintLibrary.generated.h"
 
 /**
@@ -42,4 +43,10 @@ public:
 	/** Convert a byte array into a float array, normalized by the passed in scale */
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToFloatArray (bytes)", BlueprintAutocast), Category = "Utilities|TensorFlow")
 	static TArray<float> Conv_ByteToFloatArray(const TArray<uint8>& InByteArray, float Scale = 1.f);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToFloatArray (Render Texture2D)", BlueprintAutocast), Category = "Utilities|TensorFlow")
+		static TArray<float> Conv_TextureRender2DToFloatArray(UTextureRenderTarget2D* CaptureRenderTarget, bool bGrey);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToTextureRender2D (TArray<float>)", BlueprintAutocast), Category = "Utilities|TensorFlow")
+		static UTextureRenderTarget2D* Conv_FloatArraytoTextureRender2D(const TArray<float>& InFloatArray, int SizeX, int SizeY);
 };

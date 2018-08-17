@@ -9,7 +9,7 @@ public class UnrealEnginePython : ModuleRules
 
     // leave this string as empty for triggering auto-discovery of python installations...
     private string PythonHome = "";
-    bool UseThirdPartyPython = true;    //embedded
+    bool UseThirdPartyPython = false;    //embedded
 
     //Or use the one included in third party folder
     protected string ThirdPartyPythonHome
@@ -47,9 +47,7 @@ public class UnrealEnginePython : ModuleRules
     private string[] windowsKnownPaths =
     {
         "C:/Program Files/Python36",
-        "C:/Program Files/Python35",
-        "C:/Python27",
-        "C:/IntelPython35"
+        "C:/Users/kobe/AppData/Local/conda/conda/envs/Tensorflow_gpu"
     };
 
     private string[] macKnownPaths =

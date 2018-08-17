@@ -9,6 +9,9 @@ import unreal_engine as ue
 from TFPluginAPI import TFPluginAPI
 
 import operator
+import cv2
+import numpy as np
+
 
 class MnistSimple(TFPluginAPI):
 	
@@ -16,6 +19,11 @@ class MnistSimple(TFPluginAPI):
 	def onJsonInput(self, jsonInput):
 		#expect an image struct in json format
 		pixelarray = jsonInput['pixels']
+
+		#x_raw = np.reshape(pixelarray, (28, 28))
+		#cv2.imshow("image", x_raw)
+		#cv2.waitKey()
+
 		ue.log('image len: ' + str(len(pixelarray)))
 
 		#embedd the input image pixels as 'x'
@@ -35,7 +43,7 @@ class MnistSimple(TFPluginAPI):
 
 	#expected api: no params forwarded for training? TBC
 	def onBeginTraining(self):
-
+		ue.log("tf.__file__")
 		ue.log("starting mnist simple training")
 
 		self.scripts_path = ue.get_content_dir() + "Scripts"

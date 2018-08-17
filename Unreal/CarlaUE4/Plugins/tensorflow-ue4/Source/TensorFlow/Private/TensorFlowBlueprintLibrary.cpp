@@ -2,6 +2,8 @@
 
 #include "TensorFlowPrivatePCH.h"
 #include "RHI.h"
+#include "Engine.h"
+#include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "TensorFlowBlueprintLibrary.h"
 
 
@@ -179,4 +181,70 @@ TArray<float> UTensorFlowBlueprintLibrary::Conv_ByteToFloatArray(const TArray<ui
 	}
 
 	return FloatArray;
+}
+
+TArray<float> UTensorFlowBlueprintLibrary::Conv_TextureRender2DToFloatArray(UTextureRenderTarget2D* CaptureRenderTarget, bool bGrey)
+{
+	TArray<FColor> SurfData;
+	FRenderTarget *RenderTarget = CaptureRenderTarget->GameThread_GetRenderTargetResource();
+	RenderTarget->ReadPixels(SurfData);
+
+	TArray<float> FloatArray;
+
+	size_t nListNum = CaptureRenderTarget->SizeX* CaptureRenderTarget->SizeY;
+
+	if (bGrey)
+	{
+		FloatArray.SetNum(nListNum);
+
+		for (int i = 0; i < nListNum; i++)
+		{
+			const FColor& Color = SurfData[i];
+
+			float GreyscaleValue = (Color.R + Color.G + Color.B) / 3.f;
+			FloatArray[i] = GreyscaleValue;	 //normalize it
+		}
+	}
+	else
+	{
+		int nRGBAScale = 4;
+		FloatArray.SetNum(nListNum * nRGBAScale);
+
+		for (int i = 0; i < nListNum; i++)
+		{
+			const FColor& Color = SurfData[i];
+			FloatArray[(i * nRGBAScale)] = Color.R / 255.f;
+			FloatArray[(i * nRGBAScale) + 1] = Color.G / 255.f;
+			FloatArray[(i * nRGBAScale) + 2] = Color.B / 255.f;
+			FloatArray[(i * nRGBAScale) + 3] = Color.A / 255.f;
+		}
+	}
+	CaptureRenderTarget->Source.UnlockMip(0);
+	return FloatArray;
+}
+
+UTextureRenderTarget2D* UTensorFlowBlueprintLibrary::Conv_FloatArraytoTextureRender2D(const TArray<float>& InFloatArray, int SizeX, int SizeY)
+{
+	UTextureRenderTarget2D* TextureTarget = NewObject<UTextureRenderTarget2D>();
+	TextureTarget->InitAutoFormat(SizeX, SizeY);
+
+	TArray<FColor> SurfData;
+
+	FRenderTarget *RenderTarget = TextureTarget->GameThread_GetRenderTargetResource();
+	RenderTarget->ReadPixels(SurfData);
+
+	size_t nListNum = TextureTarget->SizeX* TextureTarget->SizeY;
+
+	int nRGBAScale = 4;
+
+	for (int i = 0; i < nListNum; i++)
+	{
+		SurfData[i].R = InFloatArray[(i * nRGBAScale)] * 255.f;
+		SurfData[i].G = InFloatArray[(i * nRGBAScale) + 1] * 255.f;
+		SurfData[i].B = InFloatArray[(i * nRGBAScale) + 2] * 255.f;
+		SurfData[i].A = InFloatArray[(i * nRGBAScale) + 3] * 255.f;
+	}
+
+	TextureTarget->Source.UnlockMip(0);
+	return TextureTarget;
 }

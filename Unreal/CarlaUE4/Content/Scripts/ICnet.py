@@ -11,6 +11,9 @@ from scipy import misc
 from Model import ICNet_BN
 from tools import decode_labels
 
+import cv2
+import numpy as np
+
 
 IMG_MEAN = np.array((103.939, 116.779, 123.68), dtype=np.float32)
 # define setting & model configuration
@@ -138,14 +141,23 @@ class ICnet(TFPluginAPI):
 		#callEvent('myEvent', 'myData')
 
 		#return a json you will parse e.g. a prediction
-		img, filename = load_img(self.scripts_path + '/input/Test2.png')
+		pixelarray = jsonInput['pixels']
+
+		x_raw = np.reshape(pixelarray, (1024, 2048, 4))
+		#print(x_raw)
+		print("------------------------------------------------------------------")
+		bgr = x_raw[...,[2,1,0]]
+		cv2.imshow("image", bgr)
+
+		#_, filename = load_img(self.scripts_path + '/input/Test2.png')
+		#print(filename)
 
 		start_time = timeit.default_timer()
-		preds = self.sess.run(self.pred, feed_dict={self.x: img})
+		preds = self.sess.run(self.pred, feed_dict={self.x: bgr})
 		elapsed = timeit.default_timer() - start_time
 		print('inference time: {}'.format(elapsed))
-
-		misc.imsave(self.scripts_path + SAVE_DIR + filename, preds[0])
+		
+		misc.imsave(self.scripts_path + SAVE_DIR + "Test2.png", preds[0])
 
 		result = {}
 		result['prediction'] = -1
@@ -162,7 +174,9 @@ class ICnet(TFPluginAPI):
 		#inside your training loop check if we should stop early
 		#if(this.shouldStop):
 		#	break
-		pass
+		result = {}
+		result['elapsed'] = "onBeginTrainingOK-------------------"
+		return 
 
 	#optional api: use if you need some things to happen if we get stopped
 	def onStopTraining(self):

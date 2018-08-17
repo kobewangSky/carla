@@ -6,9 +6,10 @@
 
 #include "Carla.h"
 #include "WheeledVehicleController.h"
-
+#include "Engine.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Components/SceneCaptureComponent2D.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // =============================================================================
@@ -48,6 +49,16 @@ AWheeledVehicleController::AWheeledVehicleController(const FObjectInitializer& O
   OnBoardCamera->SetupAttachment(RootComponent);
   OnBoardCamera->bUsePawnControlRotation = false;
   OnBoardCamera->FieldOfView = 100.f;
+
+  SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture0"));
+  SceneCapture->SetRelativeLocation(FVector(140.f, 0.f, 140.f));
+  SceneCapture->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+  SceneCapture->SetupAttachment(RootComponent);
+  SceneCapture->FOVAngle = 100.f;
+  SceneCapture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+  SceneCapture->TextureTarget = NewObject<UTextureRenderTarget2D>();
+  SceneCapture->TextureTarget->InitAutoFormat(2048, 1024);
+
 }
 
 AWheeledVehicleController::~AWheeledVehicleController() {}
@@ -60,6 +71,14 @@ void AWheeledVehicleController::BeginPlay()
 {
   Super::BeginPlay();
   EnableOnBoardCamera(bOnBoardCameraIsActive, true);
+}
+
+UTextureRenderTarget2D* AWheeledVehicleController::GetCameraRenderTarget()
+{
+
+	UTextureRenderTarget2D* RenderTarget = SceneCapture->TextureTarget;
+
+	return RenderTarget;
 }
 
 // =============================================================================
@@ -96,6 +115,10 @@ void AWheeledVehicleController::Possess(APawn *aPawn)
   OnBoardCamera->AttachToComponent(
       aPawn->GetRootComponent(),
       FAttachmentTransformRules::KeepRelativeTransform);
+
+  SceneCapture->AttachToComponent(
+	  aPawn->GetRootComponent(),
+	  FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void AWheeledVehicleController::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)

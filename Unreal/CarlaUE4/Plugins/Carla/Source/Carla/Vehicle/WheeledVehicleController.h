@@ -14,6 +14,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class USceneCaptureComponent2D;
 
 /// Wheeled vehicle controller with cameras and optional user input.
 UCLASS()
@@ -39,6 +40,9 @@ public:
 public:
 
   virtual void BeginPlay() override;
+
+  UFUNCTION(BlueprintCallable, meta = (DisplayName = "GetCameraRenderTarget"), Category = "CameraFunction")
+	  UTextureRenderTarget2D* GetCameraRenderTarget();
 
   /// @}
   // ===========================================================================
@@ -117,6 +121,9 @@ private:
 
   UPROPERTY(EditAnywhere)
   UCameraComponent *OnBoardCamera;
+
+  UPROPERTY(EditAnywhere)
+	  USceneCaptureComponent2D* SceneCapture;
 
   UPROPERTY()
   bool bOnBoardCameraIsActive = false;
