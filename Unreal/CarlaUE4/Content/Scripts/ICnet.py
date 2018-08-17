@@ -158,9 +158,10 @@ class ICnet(TFPluginAPI):
 		print('inference time: {}'.format(elapsed))
 		
 		misc.imsave(self.scripts_path + SAVE_DIR + "Test2.png", preds[0])
+		Resend = np.reshape(preds, -1)
 
 		result = {}
-		result['prediction'] = -1
+		result['prediction'] = Resend.tolist()
 
 		return result
 

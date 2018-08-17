@@ -104,7 +104,7 @@ UTexture2D* UTensorFlowBlueprintLibrary::Conv_GrayScaleFloatArrayToTexture2D(con
 	return Pointer;
 }
 
-UTexture2D* UTensorFlowBlueprintLibrary::Conv_FloatArrayToTexture2D(const TArray<float>& InFloatArray, const FVector2D InSize /*= FVector2D(0, 0)*/)
+UTexture2D* UTensorFlowBlueprintLibrary::Conv_FloatArrayToTexture2D(const TArray<float>& InFloatArray, const FVector2D InSize, int Channels)
 {
 	FVector2D Size;
 
@@ -128,10 +128,24 @@ UTexture2D* UTensorFlowBlueprintLibrary::Conv_FloatArrayToTexture2D(const TArray
 	uint8* MipData = static_cast<uint8*>(Pointer->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
 	//Copy Data
-	for (int i = 0; i < InFloatArray.Num(); i++)
+	if (Channels == 4)
 	{
-		MipData[i] = int(InFloatArray[i] * 255.f);
+		for (int i = 0; i < InFloatArray.Num(); i++)
+		{
+			MipData[i] = int(InFloatArray[i] * 255.f);
+		}
 	}
+	else if (Channels == 3)
+	{
+		for ( int i = 0; i < InSize.X * InSize.Y; i++)
+		{
+			MipData[(i * 4)] = int(InFloatArray[(i * 3)] * 255.f);
+			MipData[(i * 4) + 1] = int(InFloatArray[(i * 3) +1] * 255.f);
+			MipData[(i * 4) + 2] = int(InFloatArray[(i * 3) +2] * 255.f);
+			MipData[(i * 4) + 3] = 255;
+		}
+	}
+	
 
 	//Unlock and Return data
 	Pointer->PlatformData->Mips[0].BulkData.Unlock();
@@ -231,6 +245,7 @@ UTextureRenderTarget2D* UTensorFlowBlueprintLibrary::Conv_FloatArraytoTextureRen
 	TArray<FColor> SurfData;
 
 	FRenderTarget *RenderTarget = TextureTarget->GameThread_GetRenderTargetResource();
+
 	RenderTarget->ReadPixels(SurfData);
 
 	size_t nListNum = TextureTarget->SizeX* TextureTarget->SizeY;

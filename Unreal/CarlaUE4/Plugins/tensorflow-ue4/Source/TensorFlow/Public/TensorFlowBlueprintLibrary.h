@@ -33,7 +33,7 @@ public:
 
 	/** Convert a float array to a UTexture2D, defaults to square unless size param is specified*/
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToTexture2D (Float Array)", BlueprintAutocast), Category = "Utilities|TensorFlow")
-	static UTexture2D* Conv_FloatArrayToTexture2D(const TArray<float>& InFloatArray, const FVector2D Size = FVector2D(0, 0));
+	static UTexture2D* Conv_FloatArrayToTexture2D(const TArray<float>& InFloatArray, const FVector2D Size = FVector2D(0, 0), int Channels = 4);
 
 
 	/** Convert render to target texture2d to a UTexture2D */
